@@ -100,7 +100,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-all duration-1000">
         <div class="flex flex-col items-center space-y-6">
             <div class="w-32 h-32 md:w-40 md:h-40 flex items-center justify-center relative">
-                <!-- Se intenta cargar 'logo.png' o 'logo.jpg'. Si falla, muestra el fallback SVG -->
+                <!-- Se intenta cargar 'logo.png'. Si falla, busca 'logo.jpg', y si falla, muestra el fallback SVG -->
                 <img id="splash-logo" src="logo.png" alt="Logotipo" class="max-w-full max-h-full object-contain" onerror="useFallbackLogo(this)">
             </div>
             
@@ -800,10 +800,30 @@
             renderUserEvents();
         }
 
-        // Logo Fallback en caso de que no exista localmente aún
+        // Logo Fallback SUPER INTELIGENTE (Prueba todas las combinaciones de mayúsculas/minúsculas)
         function useFallbackLogo(imgElement) {
-            imgElement.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="45" fill="none" stroke="%23FFE234" stroke-width="2.5"/><path d="M50 25 L75 68 L25 68 Z" fill="none" stroke="%23FFE234" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="48" r="8" fill="%23FFE234"/></svg>';
-            imgElement.onerror = null;
+            let attempt = parseInt(imgElement.getAttribute('data-attempt')) || 0;
+            
+            // Lista de variaciones que probará automáticamente si falla logo.png original
+            const variations = [
+                'logo.jpg',
+                'logo.PNG',
+                'logo.JPG',
+                'LOGO.PNG',
+                'LOGO.JPG',
+                'Logo.png',
+                'Logo.jpg'
+            ];
+
+            if (attempt < variations.length) {
+                // Intenta con la siguiente variación de la lista
+                imgElement.src = variations[attempt];
+                imgElement.setAttribute('data-attempt', attempt + 1);
+            } else {
+                // Si ninguna variación existe, muestra el escudo dorado SVG por defecto
+                imgElement.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="45" fill="none" stroke="%23FFE234" stroke-width="2.5"/><path d="M50 25 L75 68 L25 68 Z" fill="none" stroke="%23FFE234" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="48" r="8" fill="%23FFE234"/></svg>';
+                imgElement.onerror = null; // Detiene el ciclo
+            }
         }
 
         // CONTROL DE CARGA (SPLASH SCREEN)
